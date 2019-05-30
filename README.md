@@ -12,3 +12,5 @@ In this project we want to connect buttons through WiFi using ESP-01 ESP8266 mod
 This project consists of multiple transmitters sensing the buttons (wifi_tx) and one receiver, or host (wifi_rx).
 
 All projects are designed for the [Arduino framework](https://www.arduino.cc) with the esp8266 "board manager" installed (I had to install the Arduino's very latest version instead of the one installed on Ubuntu. Otherwise I didn't even have the "board manager" feature!).
+
+The host starts a WiFi network with SSID "escaperoom" and passphrase "abcdefgh12345678". The host will occupy IP address 192.168.0.1, subnet mask 255.255.255.0. It also starts a DHCP service with leases in the range 192.168.0.[2..100].
