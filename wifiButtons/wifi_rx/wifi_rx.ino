@@ -16,7 +16,10 @@
 */
 
 #include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
 #include <WiFiUdp.h>
+
+#include <stdio.h>
 
 #define DEBUG               //!< enables debug output (on the serial line)
 #ifdef DEBUG
@@ -24,6 +27,10 @@
 #else
 #  define DBG_PACKETS(buf,len)
 #endif
+
+#define BROWSER_INFO        //!< enables information in the browser about pressing the buttons
+#define BROWSER_COMMAND     //!< enables the command through browser (at 192.168.0.1/activate)
+//#define IGNORE_BTN_RELEASE  //!< ignores the button release part while detecting the sequence
 
 #define OUTPUT_PIN 2        //!< GPIO number to signal a correctly detected button sequence
 #define PACKET_BUF_SIZE 255 //!< size of the packet buffer (for reading the UDP packets)
@@ -38,7 +45,9 @@
 #  error "Maximum sequence lenght can be 16"
 #endif
 
+//! SSID for the WiFi network to be created
 const char* ssid = "escaperoom";
+//! Passphrase for the WiFi network to be created
 const char* password = "abcdefgh12345678";
 #define UDP_PORT 16         //!< port to listen for UDP packets
 
@@ -47,6 +56,71 @@ WiFiUDP udpHost;
 
 //! sequence state
 unsigned int btnSeq[NUM_BUTTONS];
+
+#if defined(BROWSER_COMMAND) || defined(BROWSER_INFO)
+//! web server offering some sort of debug interface
+ESP8266WebServer webServer(80);
+
+#ifdef BROWSER_INFO
+//! returns some "human-readable" format about the sequence of pressed buttons
+static void sendBtnSeqInfo(void)
+{
+    char buf[32*3+1];
+    char* pBuf = &buf[0];
+    unsigned int mask = (1 << 31);
+    while (mask)
+    {
+        // find if there was a button pressed at this time
+        char btn = '_';
+        for (int ixBtn=0; ixBtn<NUM_BUTTONS; ixBtn++)
+        {
+            if (btnSeq[ixBtn] & mask)
+            {
+                btn = 'A' + ixBtn;
+                break;
+            }
+        }
+
+        *pBuf++ = btn;
+        if (btn != '_')
+        {
+            *pBuf++ = '^';
+        }
+        *pBuf++ = '\n';
+
+        mask >>= 1;
+    }
+    *pBuf++ = '\0';
+
+    webServer.send(200, "text/plain", buf);
+}
+#endif // BROWSER_INFO
+
+//! web server's answer to a query of the root document
+void handleRoot()
+{
+#ifdef BROWSER_INFO
+    sendBtnSeqInfo();
+#else // BROWSER_INFO
+    char buf[NUM_BUTTONS*9];
+    for (int k=0; k<NUM_BUTTONS; k++)
+    {
+        sprintf(buf+k*9, "%08x", btnSeq[k]);
+        buf[k*9+8] = '\n';
+    }
+    buf[NUM_BUTTONS*9-1] = '\0';
+    webServer.send(200, "text/plain", buf);
+#endif // BROWSER_INFO
+}
+
+//! web server's handling of a query of the /activate document
+void handleActivate()
+{
+    Serial.println("Activating output pin");
+    digitalWrite(OUTPUT_PIN, HIGH);
+    webServer.send(200, "text/plain", "Zeitmaschine aktiviert");
+}
+#endif // BROWSER_COMMAND || BROWSER_INFO
 
 //! Initialization
 void setup()
@@ -99,6 +173,12 @@ void setup()
     // ************** UDP HOST INITIALIZATION **************
     udpHost.begin(UDP_PORT);
     Serial.printf("Now listening on port %u for UDP packets\n", UDP_PORT);
+
+#if defined(BROWSER_COMMAND) || defined(BROWSER_INFO)
+    // ************** WEB SERVER INITIALIZATION **************
+    webServer.on("/", handleRoot);
+    webServer.on("/activate", handleActivate);
+#endif
 }
 
 #ifdef DEBUG
@@ -128,29 +208,53 @@ static void detectSequence(const int btnIndex, int btnState)
     // the correct sequence is defined as (character means: button press "1" and release "0")
     // A - D - C - B - C - A - B - D
     const unsigned int refSeq[NUM_BUTTONS] = {
+#ifdef IGNORE_BTN_RELEASE
+                    // A D C B C A B D
+        0x00000084, // 1 0 0 0 0 1 0 0
+        0x00000012, // 0 0 0 1 0 0 1 0
+        0x00000028, // 0 0 1 0 1 0 0 0
+        0x00000041  // 0 1 0 0 0 0 0 1
+#else // IGNORE_BTN_RELEASE
                     // A  D  C  B  C  A  B  D
         0x00008020, // 10 00 00 00 00 10 00 00
         0x00000208, // 00 00 00 10 00 00 10 00
         0x00000880, // 00 00 10 00 10 00 00 00
         0x00002002  // 00 10 00 00 00 00 00 10
+#endif // IGNORE_BTN_RELEASE
     };
 
     unsigned int allSeqCorrect = 1;
+#ifdef IGNORE_BTN_RELEASE
+    unsigned int seqMask = MASK(SEQUENCE_LEN);
+#else
     unsigned int seqMask = MASK(2*SEQUENCE_LEN);
+#endif
     for (int k=0; k<NUM_BUTTONS; k++)
     {
+#ifndef IGNORE_BTN_RELEASE
         btnSeq[k] <<= 1;
+#endif
         if (btnIndex==k && btnState)
         {
+#ifdef IGNORE_BTN_RELEASE
+            btnSeq[k] <<= 1;
+#endif
             btnSeq[k] |= 1;
         }
 
+#ifdef IGNORE_BTN_RELEASE
+        if ((btnSeq[k] & seqMask) != refSeq[k])
+        {
+            allSeqCorrect = 0;
+        }
+#else // IGNORE_BTN_RELEASE
         // added the "<< 1" below because we don't want to wait for the
         // release of the final button
         if (((btnSeq[k] << 1) & seqMask) != refSeq[k])
         {
             allSeqCorrect = 0;
         }
+#endif // IGNORE_BTN_RELEASE
     }
 
     if (allSeqCorrect)
@@ -189,10 +293,16 @@ static void readUdpPackets()
 //! Continuous running loop
 void loop()
 {
+    // check for incoming UDP packets
     int packetSize = udpHost.parsePacket();
     if (packetSize > 0)
     {
         // UDP packets received, decode them
         readUdpPackets();
     }
+
+#if defined(BROWSER_COMMAND) || defined(BROWSER_INFO)
+    // handle the TCP clients
+    webServer.handleClient();
+#endif
 }
