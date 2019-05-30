@@ -3,6 +3,7 @@
 This is a project containing code for running an escape game in the Cevi Muttenz Sola 2019 in Sedrun. The project contains many subparts such as
 * wifiButtons
   * wifi_rx
+  * wifi_tx
 
 
 ## wifiButtons
@@ -13,4 +14,6 @@ This project consists of multiple transmitters sensing the buttons (wifi_tx) and
 
 All projects are designed for the [Arduino framework](https://www.arduino.cc) with the esp8266 "board manager" installed (I had to install the Arduino's very latest version instead of the one installed on Ubuntu. Otherwise I didn't even have the "board manager" feature!).
 
-The host starts a WiFi network with SSID "escaperoom" and passphrase "abcdefgh12345678". The host will occupy IP address 192.168.0.1, subnet mask 255.255.255.0. It also starts a DHCP service with leases in the range 192.168.0.[2..100].
+The host (wifi_rx) starts a WiFi network with SSID "escaperoom" and passphrase "abcdefgh12345678". The host will occupy IP address 192.168.0.1, subnet mask 255.255.255.0. It also starts a DHCP service with leases in the range 192.168.0.[2..100].
+
+The client (wifi_tx) connects to the WiFi network with SSID "escaperoom" and passphrase "abcdefgh12345678". When it detects the button is pressed then it sends a UDP packet to the host (192.168.0.1) and again another UDP message when the button is released.
