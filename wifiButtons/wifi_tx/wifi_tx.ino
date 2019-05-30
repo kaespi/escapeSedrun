@@ -24,8 +24,8 @@
 #define BUTTON_CHAR 'A'         //!< button name/number
 #define MIN_DELAY_PIN_READ 5    //!< waiting time for reading the pin (to prevent detecting glitches) [ms]
 
-const char* ssid = "kg";//"escaperoom";
-const char* password = "SY25E_g22K%J4b2y5*52";//"abcdefgh12345678";
+const char* ssid = "escaperoom";
+const char* password = "abcdefgh12345678";
 const IPAddress hostIp = IPAddress(192, 168, 0, 1);
 #define UDP_PORT 16         //!< port to transmit UDP packets
 
