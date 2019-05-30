@@ -4,6 +4,8 @@ This is a project containing code for running an escape game in the Cevi Muttenz
 * wifiButtons
   * wifi_rx
   * wifi_tx
+* timeMachine
+  * controlPanel
 
 
 ## wifiButtons
@@ -17,3 +19,9 @@ All projects are designed for the [Arduino framework](https://www.arduino.cc) wi
 The host (wifi_rx) starts a WiFi network with SSID "escaperoom" and passphrase "abcdefgh12345678". The host will occupy IP address 192.168.0.1, subnet mask 255.255.255.0. It also starts a DHCP service with leases in the range 192.168.0.[2..100].
 
 The client (wifi_tx) connects to the WiFi network with SSID "escaperoom" and passphrase "abcdefgh12345678". When it detects the button is pressed then it sends a UDP packet to the host (192.168.0.1) and again another UDP message when the button is released.
+
+## timeMachine
+
+In this project we want to build some sort of "backend" for a time machine with fancy control panel. It has an ESP-01 connected (the wifi_rx). The time machine/control panel shall be activated once the WiFi host flags a high level on its GPIO output pin.
+
+The main riddle behind the time machine is using RFID badges and place them on the proper readers.
