@@ -27,9 +27,16 @@
 
 #define OUTPUT_PIN 2        //!< GPIO number to signal a correctly detected button sequence
 #define PACKET_BUF_SIZE 255 //!< size of the packet buffer (for reading the UDP packets)
+#define NUM_BUTTONS 4       //!< number of buttons expected
+#define SEQUENCE_LEN 8      //!< length of the sequence
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))    //!< Minium of two variables
 #define MAX(a,b) ((a) > (b) ? (a) : (b))    //!< Maximum of two variables
+#define MASK(nbits) ((nbits)>=32 ? ((unsigned int)0xFFFFFFFF) : ((unsigned int)(1 << (nbits))-1))
+
+#if (SEQUENCE_LEN > 16)
+#  error "Maximum sequence lenght can be 16"
+#endif
 
 const char* ssid = "escaperoom";
 const char* password = "abcdefgh12345678";
@@ -37,6 +44,9 @@ const char* password = "abcdefgh12345678";
 
 //! UDP host instance
 WiFiUDP udpHost;
+
+//! sequence state
+unsigned int btnSeq[NUM_BUTTONS];
 
 //! Initialization
 void setup()
@@ -47,6 +57,13 @@ void setup()
 
     // ************** PIN INITIALIZATION **************
     pinMode(OUTPUT_PIN, OUTPUT);
+    digitalWrite(OUTPUT_PIN, LOW);
+
+    // ************** SEQUENCE DETECTION INITIALIZATION **************
+    for (int k=0; k<NUM_BUTTONS; k++)
+    {
+        btnSeq[k] = 0;
+    }
  
     // ************** WIFI NETWORK INITIALIZATION **************
     Serial.println();
@@ -105,6 +122,45 @@ static void debugUdpPackets(char* buf, int N)
 }
 #endif // DEBUG
 
+//! Handles the sequence detection
+static void detectSequence(const int btnIndex, int btnState)
+{
+    // the correct sequence is defined as (character means: button press "1" and release "0")
+    // A - D - C - B - C - A - B - D
+    const unsigned int refSeq[NUM_BUTTONS] = {
+                    // A  D  C  B  C  A  B  D
+        0x00008020, // 10 00 00 00 00 10 00 00
+        0x00000208, // 00 00 00 10 00 00 10 00
+        0x00000880, // 00 00 10 00 10 00 00 00
+        0x00002002  // 00 10 00 00 00 00 00 10
+    };
+
+    unsigned int allSeqCorrect = 1;
+    unsigned int seqMask = MASK(2*SEQUENCE_LEN);
+    for (int k=0; k<NUM_BUTTONS; k++)
+    {
+        btnSeq[k] <<= 1;
+        if (btnIndex==k && btnState)
+        {
+            btnSeq[k] |= 1;
+        }
+
+        // added the "<< 1" below because we don't want to wait for the
+        // release of the final button
+        if (((btnSeq[k] << 1) & seqMask) != refSeq[k])
+        {
+            allSeqCorrect = 0;
+        }
+    }
+
+    if (allSeqCorrect)
+    {
+        // successful sequence detection
+        Serial.println("Sequence detected");
+        digitalWrite(OUTPUT_PIN, HIGH);
+    }
+}
+
 //! Read UDP packets in the pipeline
 static void readUdpPackets()
 {
@@ -112,6 +168,22 @@ static void readUdpPackets()
     buf[PACKET_BUF_SIZE-1] = 0; // properly terminate buf (for potential printing)
     int nBytes = udpHost.read(buf, PACKET_BUF_SIZE-1);
     DBG_PACKETS(buf, nBytes);
+
+    // process the packets (search for pattern "BTN{0,1}{A,B,C,D,...}")
+    if (nBytes >= 5 && buf[0]=='B' && buf[1]=='T' && buf[2]=='N')
+    {
+        int btnState = (buf[3]=='1' ? 1 :
+                        buf[3]=='0' ? 0 : -1);
+        int btnIndex = (buf[4] >= 'A' && buf[4] <= 'Z' ? buf[4] - 'A' : -1);
+
+        if (btnState >= 0 && btnIndex >= 0)
+        {
+#ifdef DEBUG
+            Serial.printf("Button %u %s\n", (unsigned char)btnIndex, btnState==1 ? "pressed" : "released");
+#endif
+            detectSequence(btnIndex, btnState);
+        }
+    }
 }
 
 //! Continuous running loop
