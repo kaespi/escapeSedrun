@@ -21,7 +21,7 @@
 
 #include <stdio.h>
 
-#define DEBUG               //!< enables debug output (on the serial line)
+//#define DEBUG             //!< enables debug output (on the serial line)
 #ifdef DEBUG
 #  define DBG_PACKETS(buf,len) debugUdpPackets(buf,len)
 #else

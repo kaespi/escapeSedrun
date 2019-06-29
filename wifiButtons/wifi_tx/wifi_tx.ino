@@ -18,7 +18,7 @@
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 
-#define DEBUG                   //!< enables debug output (on the serial line)
+//#define DEBUG                 //!< enables debug output (on the serial line)
 
 #define INPUT_PIN 2             //!< GPIO number to detect a pressed button
 #define BUTTON_CHAR 'A'         //!< button name/number
@@ -27,6 +27,7 @@
 const char* ssid = "escaperoom";
 const char* password = "abcdefgh12345678";
 const IPAddress hostIp = IPAddress(192, 168, 0, 1);
+
 #define UDP_PORT 16         //!< port to transmit UDP packets
 
 //! UDP client instance

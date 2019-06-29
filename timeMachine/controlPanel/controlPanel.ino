@@ -18,7 +18,7 @@
 #include <SPI.h>
 #include <MFRC522.h>
 
-#define DEBUG                       //!< enable debug output over the serial line
+//#define DEBUG                     //!< enable debug output over the serial line
 
 #define WIFI_ANALOG_PIN 0           //!< analog pin for reading the status of the "WiFi buttons"
 #define ANALOG_3P3V_PIN_THRES 338   //!< threshold for deciding whether an input pin is 1 or 0 (3.3V pin) (=round(3.3/5*1023/2))
