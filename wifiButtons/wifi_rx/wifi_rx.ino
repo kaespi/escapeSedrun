@@ -178,6 +178,7 @@ void setup()
     // ************** WEB SERVER INITIALIZATION **************
     webServer.on("/", handleRoot);
     webServer.on("/activate", handleActivate);
+    webServer.begin();
 #endif
 }
 
