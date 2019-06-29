@@ -22,7 +22,9 @@
 
 #define WIFI_ANALOG_PIN 0           //!< analog pin for reading the status of the "WiFi buttons"
 #define ANALOG_3P3V_PIN_THRES 338   //!< threshold for deciding whether an input pin is 1 or 0 (3.3V pin) (=round(3.3/5*1023/2))
-#define NUM_MFRC522         1       //!< number of MFRC522 modules connected
+#define NUM_MFRC522         4       //!< number of MFRC522 modules connected
+
+#define T_CARD_CHECK_MS   500       //!< time interval to check the cards' states [ms]
 
 // Arduino Uno pins to coummunicate with the MFRC522s
 #define MFRC522_RST_PIN     9       //!< pin connected to the RST on each MFRC522 module
@@ -31,7 +33,9 @@
 #define MFRC522_3_SS_PIN    7       //!< pin connected to the third MFRC522's SPI SS pin (NSS, slave select)
 #define MFRC522_4_SS_PIN    6       //!< pin connected to the fourth MFRC522's SPI SS pin (NSS, slave select)
 
-#define MFRC522_GAIN_MASK   0x7     //!< gain mask to set the antenna gain (see p. 59, table 98 of NXP MFRC522 manual)
+#define MFRC522_GAIN_MASK   0x1     //!< gain mask to set the antenna gain (see p. 59, table 98 of NXP MFRC522 manual)
+
+#define MASK(nbits) ((nbits)>=32 ? ((unsigned int)0xFFFFFFFF) : ((unsigned int)(1 << (nbits))-1))
 
 //! type for the state of the time machine
 typedef enum TIME_MACHINE_STATE_e
@@ -46,6 +50,21 @@ static TIME_MACHINE_STATE_t stTimemachine;
 //! MFRC522 modules connected
 static MFRC522 mfrc522[NUM_MFRC522];
 
+//! correct card identifiers
+static const byte correctCards[NUM_MFRC522][4] =
+{
+    { 163, 140, 118, 26 },
+    { 163, 134, 168, 26 },
+    {   3,  82,  50, 27 },
+    {   3,  19,  33, 27 }
+};
+
+//! bitmask with a bit set to 1 if the corresponding card was seen
+static unsigned char cardsOk;
+
+//! time of the last status update of the cards [ms]
+static unsigned long tLastCheckMs;
+
 //! Initialization
 void setup()
 {
@@ -59,6 +78,9 @@ void setup()
     // ************** MFRC522 INITIALIZATION **************
     // initialize the SPI bus first
     SPI.begin();
+
+    tLastCheckMs = millis();
+    cardsOk = 0;
 
     // initialize each module
     for (int k=0; k<NUM_MFRC522; k++)
@@ -78,6 +100,7 @@ void setup()
         Serial.print(k+1);
         Serial.print(": ");
         mfrc522[k].PCD_DumpVersionToSerial();
+        Serial.println("");
 #endif
 
 #if defined(MFRC522_GAIN_MASK) && (MFRC522_GAIN_MASK >= 0x0) && (MFRC522_GAIN_MASK <= 0x7)
@@ -85,6 +108,8 @@ void setup()
         mfrc522[k].PCD_SetAntennaGain(MFRC522_GAIN_MASK << 4);
 #endif
     }
+
+    Serial.println("Control panel ready");
 }
 
 //! checks the state of the RFID cards potentially laid on the readers
@@ -92,7 +117,9 @@ static void checkRfidCards(void)
 {
     for (int k=0; k<NUM_MFRC522; k++)
     {
-        if (mfrc522[k].PICC_IsNewCardPresent() && mfrc522[k].PICC_ReadCardSerial())
+        if (!(cardsOk & (1<<k)) &&  // do not try to detect the same card twice...
+            mfrc522[k].PICC_IsNewCardPresent() &&
+            mfrc522[k].PICC_ReadCardSerial())
         {
 #ifdef DEBUG
             Serial.print("MFRC522 #");
@@ -109,11 +136,42 @@ static void checkRfidCards(void)
             }
 #endif // DEBUG
 
-            // Halt PICC
-            mfrc522[k].PICC_HaltA();
             // Stop encryption on PCD
             mfrc522[k].PCD_StopCrypto1();
+
+            if (mfrc522[k].uid.size==4)
+            {
+                int cardOk = 1;
+                for (int n=0; n<4; n++)
+                {
+                    if (mfrc522[k].uid.uidByte[n] != correctCards[k][n])
+                    {
+                        cardOk = 0;
+                    }
+                }
+                if (cardOk)
+                {
+#ifdef DEBUG
+                    Serial.print("card #");
+                    Serial.print(k+1);
+                    Serial.println(" ok");
+#endif
+                    cardsOk |= (1 << k);
+                }
+            }
         }
+    }
+
+    if (cardsOk == MASK(NUM_MFRC522))
+    {
+        Serial.println("all cards ok");
+    }
+
+    unsigned long now = millis();
+    if (now - tLastCheckMs >= T_CARD_CHECK_MS)
+    {
+        cardsOk = 0;
+        tLastCheckMs = now;
     }
 }
 
