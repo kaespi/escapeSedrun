@@ -54,6 +54,8 @@ const char* password = "abcdefgh12345678";
 //! UDP host instance
 WiFiUDP udpHost;
 
+//! button state (if available or not)
+unsigned int btnReady[NUM_BUTTONS];
 //! sequence state
 unsigned int btnSeq[NUM_BUTTONS];
 
@@ -65,9 +67,20 @@ ESP8266WebServer webServer(80);
 //! returns some "human-readable" format about the sequence of pressed buttons
 static void sendBtnSeqInfo(void)
 {
-    char buf[32*3+1];
+    char buf[3*NUM_BUTTONS+2 + 32*3+1];
     char* pBuf = &buf[0];
-    unsigned int mask = (1 << 31);
+
+    // button availability
+    for (int ixBtn=0; ixBtn<NUM_BUTTONS; ixBtn++)
+    {
+        *pBuf++ = ' ';
+        *pBuf++ = ('A' + ixBtn);
+        *pBuf++ = (btnReady[ixBtn] ? 'v' : 'x');
+    }
+    *pBuf++ = '\n\n';
+
+    // sequence state
+    unsigned int mask = (1 << 21);
     while (mask)
     {
         // find if there was a button pressed at this time
@@ -132,6 +145,12 @@ void setup()
     // ************** PIN INITIALIZATION **************
     pinMode(OUTPUT_PIN, OUTPUT);
     digitalWrite(OUTPUT_PIN, LOW);
+
+    // ************** BUTTON STATE INITIALIZATION **************
+    for (int k=0; k<NUM_BUTTONS; k++)
+    {
+        btnReady[k] = 0;
+    }
 
     // ************** SEQUENCE DETECTION INITIALIZATION **************
     for (int k=0; k<NUM_BUTTONS; k++)
@@ -274,8 +293,18 @@ static void readUdpPackets()
     int nBytes = udpHost.read(buf, PACKET_BUF_SIZE-1);
     DBG_PACKETS(buf, nBytes);
 
-    // process the packets (search for pattern "BTN{0,1}{A,B,C,D,...}")
-    if (nBytes >= 5 && buf[0]=='B' && buf[1]=='T' && buf[2]=='N')
+    // process the packets (search for pattern "BTN{0,1}{A,B,C,D,...}" and
+    // "INIT{A,B,C,D,...}")
+    if (nBytes >= 5 && buf[0]=='I' && buf[1]=='N' && buf[2]=='I' && buf[3]=='T')
+    {
+        int btnIndex = (buf[4] >= 'A' && buf[4] <= 'Z' ? buf[4] - 'A' : -1);
+
+        if (btnIndex >= 0 && btnIndex < NUM_BUTTONS)
+        {
+            btnReady[btnIndex] = 1;
+        }
+    }
+    else if (nBytes >= 5 && buf[0]=='B' && buf[1]=='T' && buf[2]=='N')
     {
         int btnState = (buf[3]=='1' ? 1 :
                         buf[3]=='0' ? 0 : -1);
