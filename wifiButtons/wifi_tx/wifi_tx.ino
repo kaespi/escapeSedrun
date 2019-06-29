@@ -78,6 +78,11 @@ void setup()
     udpClient.begin(UDP_PORT);
 
     Serial.printf("Check for button on pin %u and send status over UDP, port %u\n", INPUT_PIN, UDP_PORT);
+
+    char udpMsg[6] = { 'I', 'N', 'I', 'T', BUTTON_CHAR, '\0' };
+    udpClient.beginPacket(hostIp, UDP_PORT);
+    udpClient.write(udpMsg);
+    udpClient.endPacket();
 }
 
 //! Continuous running loop
