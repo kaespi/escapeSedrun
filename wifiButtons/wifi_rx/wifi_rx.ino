@@ -161,7 +161,7 @@ void setup()
     wifi_softap_set_dhcps_lease(&dhcpConfig);
 
     // start the access point
-    WiFi.softAP(ssid, password);
+    WiFi.softAP(ssid, password, 1, 0, NUM_BUTTONS+1);
     Serial.print("AP IP address: ");
     Serial.println(WiFi.softAPIP());
  
