@@ -23,40 +23,51 @@ Partial Class Form1
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
         Me.Button1 = New System.Windows.Forms.Button()
-        Me.Label1 = New System.Windows.Forms.Label()
-        Me.Label2 = New System.Windows.Forms.Label()
+        Me.lblPwd = New System.Windows.Forms.Label()
+        Me.lblHint = New System.Windows.Forms.Label()
+        Me.txtPwd = New System.Windows.Forms.TextBox()
         Me.SuspendLayout()
         '
         'Button1
         '
-        Me.Button1.Location = New System.Drawing.Point(692, 422)
+        Me.Button1.Location = New System.Drawing.Point(12, 12)
         Me.Button1.Name = "Button1"
         Me.Button1.Size = New System.Drawing.Size(75, 23)
         Me.Button1.TabIndex = 0
         Me.Button1.Text = "Exit"
         Me.Button1.UseVisualStyleBackColor = True
         '
-        'Label1
+        'lblPwd
         '
-        Me.Label1.AutoSize = True
-        Me.Label1.Font = New System.Drawing.Font("Microsoft Sans Serif", 20.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label1.ForeColor = System.Drawing.Color.White
-        Me.Label1.Location = New System.Drawing.Point(126, 150)
-        Me.Label1.Name = "Label1"
-        Me.Label1.Size = New System.Drawing.Size(127, 31)
-        Me.Label1.TabIndex = 1
-        Me.Label1.Text = "Passwort"
+        Me.lblPwd.AutoSize = True
+        Me.lblPwd.Font = New System.Drawing.Font("Microsoft Sans Serif", 20.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblPwd.ForeColor = System.Drawing.Color.White
+        Me.lblPwd.Location = New System.Drawing.Point(126, 150)
+        Me.lblPwd.Name = "lblPwd"
+        Me.lblPwd.Size = New System.Drawing.Size(127, 31)
+        Me.lblPwd.TabIndex = 1
+        Me.lblPwd.Text = "Passwort"
         '
-        'Label2
+        'lblHint
         '
-        Me.Label2.AutoSize = True
-        Me.Label2.Font = New System.Drawing.Font("Microsoft Sans Serif", 16.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label2.ForeColor = System.Drawing.Color.White
-        Me.Label2.Location = New System.Drawing.Point(126, 221)
-        Me.Label2.Name = "Label2"
-        Me.Label2.Size = New System.Drawing.Size(344, 26)
-        Me.Label2.TabIndex = 2
-        Me.Label2.Text = "(Hinweis: Nachname von Melanie)"
+        Me.lblHint.AutoSize = True
+        Me.lblHint.Font = New System.Drawing.Font("Microsoft Sans Serif", 16.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblHint.ForeColor = System.Drawing.Color.White
+        Me.lblHint.Location = New System.Drawing.Point(126, 221)
+        Me.lblHint.Name = "lblHint"
+        Me.lblHint.Size = New System.Drawing.Size(344, 26)
+        Me.lblHint.TabIndex = 2
+        Me.lblHint.Text = "(Hinweis: Nachname von Melanie)"
+        '
+        'txtPwd
+        '
+        Me.txtPwd.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+        Me.txtPwd.Font = New System.Drawing.Font("Microsoft Sans Serif", 20.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtPwd.Location = New System.Drawing.Point(298, 150)
+        Me.txtPwd.Name = "txtPwd"
+        Me.txtPwd.Size = New System.Drawing.Size(307, 38)
+        Me.txtPwd.TabIndex = 3
+        Me.txtPwd.Text = "Passwort hier eingeben"
         '
         'Form1
         '
@@ -64,8 +75,9 @@ Partial Class Form1
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.Black
         Me.ClientSize = New System.Drawing.Size(779, 457)
-        Me.Controls.Add(Me.Label2)
-        Me.Controls.Add(Me.Label1)
+        Me.Controls.Add(Me.txtPwd)
+        Me.Controls.Add(Me.lblHint)
+        Me.Controls.Add(Me.lblPwd)
         Me.Controls.Add(Me.Button1)
         Me.Name = "Form1"
         Me.Text = "Form1"
@@ -75,7 +87,8 @@ Partial Class Form1
 
     End Sub
     Friend WithEvents Button1 As System.Windows.Forms.Button
-    Friend WithEvents Label1 As System.Windows.Forms.Label
-    Friend WithEvents Label2 As System.Windows.Forms.Label
+    Friend WithEvents lblPwd As System.Windows.Forms.Label
+    Friend WithEvents lblHint As System.Windows.Forms.Label
+    Friend WithEvents txtPwd As System.Windows.Forms.TextBox
 
 End Class
