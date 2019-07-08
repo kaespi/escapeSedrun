@@ -30,10 +30,12 @@ Partial Class Form1
         '
         'Button1
         '
-        Me.Button1.Location = New System.Drawing.Point(12, 12)
+        Me.Button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.Button1.Location = New System.Drawing.Point(21, 21)
         Me.Button1.Name = "Button1"
-        Me.Button1.Size = New System.Drawing.Size(75, 23)
-        Me.Button1.TabIndex = 0
+        Me.Button1.Size = New System.Drawing.Size(30, 25)
+        Me.Button1.TabIndex = 100
+        Me.Button1.TabStop = False
         Me.Button1.Text = "Exit"
         Me.Button1.UseVisualStyleBackColor = True
         '
