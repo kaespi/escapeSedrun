@@ -1,7 +1,6 @@
 ﻿Public Class Form1
 
     Dim closeButtonPressed = False
-    Dim pwdEntered = False
 
     Declare Function SetWindowsHookEx Lib "user32" Alias "SetWindowsHookExA" (ByVal idHook As Integer, ByVal lpfn As LowLevelKeyboardProcDelegate, ByVal hMod As IntPtr, ByVal dwThreadId As Integer) As IntPtr
     Declare Function UnhookWindowsHookEx Lib "user32" Alias "UnhookWindowsHookEx" (ByVal hHook As IntPtr) As Boolean
@@ -80,7 +79,7 @@
 
         Dim elementFocused = Me.ActiveControl.Name
 
-        If elementFocused = "txtPwd" And wParam = 256 And lParam.vkCode = 13 Then
+        If elementFocused = "txtPwd" Then
             CheckPassword()
         End If
 
@@ -93,12 +92,20 @@
 
     Private Sub CheckPassword()
         ' Check the password
-        pwdEntered = True
         If txtPwd.Text = password Then
-            txtPwd.Text = "Enter"
-        Else
-            MsgBox("Passwort falsch", MsgBoxStyle.Information, "")
-            pwdEntered = False
+            txtPwd.ForeColor = Color.Green
+            Application.DoEvents()
+            System.Threading.Thread.Sleep(500)
+
+            videoPlayer.Visible = True
+            videoPlayer.URL = ".\\MVI_0043.AVI"
+
+            Dim formW = Me.Size.Width
+            Dim formH = Me.Size.Height
+            videoPlayer.Location = New Point(0, 0)
+            videoPlayer.Width = formW
+            videoPlayer.Height = formH
+            videoPlayer.fullScreen = True
         End If
     End Sub
 
@@ -129,6 +136,13 @@
     Private Sub Form1_FormClosing(ByVal sender As System.Object, ByVal e As System.Windows.Forms.FormClosingEventArgs) Handles MyBase.FormClosing
         If (e.CloseReason = CloseReason.UserClosing And closeButtonPressed = False) Then
             e.Cancel = True
+        End If
+    End Sub
+
+    Private Sub checkPlayState(ByVal sender As System.Object, ByVal e As AxWMPLib._WMPOCXEvents_PlayStateChangeEvent) Handles videoPlayer.PlayStateChange
+        If e.newState = 8 Then
+            closeButtonPressed = True
+            Close()
         End If
     End Sub
 End Class

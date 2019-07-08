@@ -22,16 +22,19 @@ Partial Class Form1
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
+        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(Form1))
         Me.Button1 = New System.Windows.Forms.Button()
         Me.lblPwd = New System.Windows.Forms.Label()
         Me.lblHint = New System.Windows.Forms.Label()
         Me.txtPwd = New System.Windows.Forms.TextBox()
+        Me.videoPlayer = New AxWMPLib.AxWindowsMediaPlayer()
+        CType(Me.videoPlayer, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
         'Button1
         '
         Me.Button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.Button1.Location = New System.Drawing.Point(21, 21)
+        Me.Button1.Location = New System.Drawing.Point(34, 24)
         Me.Button1.Name = "Button1"
         Me.Button1.Size = New System.Drawing.Size(30, 25)
         Me.Button1.TabIndex = 100
@@ -65,11 +68,22 @@ Partial Class Form1
         '
         Me.txtPwd.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
         Me.txtPwd.Font = New System.Drawing.Font("Microsoft Sans Serif", 20.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtPwd.ForeColor = System.Drawing.Color.Red
         Me.txtPwd.Location = New System.Drawing.Point(298, 150)
         Me.txtPwd.Name = "txtPwd"
         Me.txtPwd.Size = New System.Drawing.Size(307, 38)
         Me.txtPwd.TabIndex = 0
         Me.txtPwd.Text = "Passwort hier eingeben"
+        '
+        'videoPlayer
+        '
+        Me.videoPlayer.Enabled = True
+        Me.videoPlayer.Location = New System.Drawing.Point(368, 319)
+        Me.videoPlayer.Name = "videoPlayer"
+        Me.videoPlayer.OcxState = CType(resources.GetObject("videoPlayer.OcxState"), System.Windows.Forms.AxHost.State)
+        Me.videoPlayer.Size = New System.Drawing.Size(133, 52)
+        Me.videoPlayer.TabIndex = 101
+        Me.videoPlayer.Visible = False
         '
         'Form1
         '
@@ -77,6 +91,7 @@ Partial Class Form1
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.Black
         Me.ClientSize = New System.Drawing.Size(779, 457)
+        Me.Controls.Add(Me.videoPlayer)
         Me.Controls.Add(Me.txtPwd)
         Me.Controls.Add(Me.lblHint)
         Me.Controls.Add(Me.lblPwd)
@@ -84,6 +99,7 @@ Partial Class Form1
         Me.Name = "Form1"
         Me.Text = "Form1"
         Me.WindowState = System.Windows.Forms.FormWindowState.Maximized
+        CType(Me.videoPlayer, System.ComponentModel.ISupportInitialize).EndInit()
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -92,5 +108,6 @@ Partial Class Form1
     Friend WithEvents lblPwd As System.Windows.Forms.Label
     Friend WithEvents lblHint As System.Windows.Forms.Label
     Friend WithEvents txtPwd As System.Windows.Forms.TextBox
+    Friend WithEvents videoPlayer As AxWMPLib.AxWindowsMediaPlayer
 
 End Class
