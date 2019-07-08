@@ -68,7 +68,7 @@ Partial Class Form1
         Me.txtPwd.Location = New System.Drawing.Point(298, 150)
         Me.txtPwd.Name = "txtPwd"
         Me.txtPwd.Size = New System.Drawing.Size(307, 38)
-        Me.txtPwd.TabIndex = 3
+        Me.txtPwd.TabIndex = 0
         Me.txtPwd.Text = "Passwort hier eingeben"
         '
         'Form1
