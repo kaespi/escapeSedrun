@@ -6,6 +6,7 @@ This is a project containing code for running an escape game in the Cevi Muttenz
   * wifi_tx
 * timeMachine
   * controlPanel
+* passwordWin
 
 
 ## wifiButtons
@@ -25,3 +26,7 @@ The client (wifi_tx) connects to the WiFi network with SSID "escaperoom" and pas
 In this project we want to build some sort of "backend" for a time machine with fancy control panel. It has an ESP-01 connected (the wifi_rx). The time machine/control panel shall be activated once the WiFi host flags a high level on its GPIO output pin.
 
 The main riddle behind the time machine is using RFID badges and place them on the proper readers.
+
+## passwordWin
+
+A windows application written in VisualBasic to prompt for a password (fullscreen) and play a video once the correct password is entered.
