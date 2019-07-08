@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "pwd_vb", "pwd_vb.vbproj", "{0F4FB9FC-8B86-4805-89C6-05BD7B454D59}"
 EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "pwd_vb_installer", "..\pwd_vb_installer\pwd_vb_installer.vdproj", "{41EAF2ED-3320-4CAD-BE28-8C82CB88F08B}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -15,8 +13,6 @@ Global
 		{0F4FB9FC-8B86-4805-89C6-05BD7B454D59}.Debug|x86.Build.0 = Debug|x86
 		{0F4FB9FC-8B86-4805-89C6-05BD7B454D59}.Release|x86.ActiveCfg = Release|x86
 		{0F4FB9FC-8B86-4805-89C6-05BD7B454D59}.Release|x86.Build.0 = Release|x86
-		{41EAF2ED-3320-4CAD-BE28-8C82CB88F08B}.Debug|x86.ActiveCfg = Debug
-		{41EAF2ED-3320-4CAD-BE28-8C82CB88F08B}.Release|x86.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
