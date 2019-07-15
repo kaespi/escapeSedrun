@@ -26,6 +26,12 @@
 
 #define T_CARD_CHECK_MS   500       //!< time interval to check the cards' states [ms]
 
+#define LED_PIN_RED1        2       //!< pin connected to two red LEDs
+#define LED_PIN_RED2        3       //!< pin connected to two red LEDs
+#define LED_PIN_YELLOW1     4       //!< pin connected to two yellow LEDs
+#define LED_PIN_YELLOW2     5       //!< pin connected to two yellow LEDs
+#define T_LED_BLINK_MS    200       //!< LED blink interval
+
 // Arduino Uno pins to coummunicate with the MFRC522s
 #define MFRC522_RST_PIN     9       //!< pin connected to the RST on each MFRC522 module
 #define MFRC522_1_SS_PIN   10       //!< pin connected to the first MFRC522's SPI SS pin (NSS, slave select)
@@ -40,12 +46,19 @@
 //! type for the state of the time machine
 typedef enum TIME_MACHINE_STATE_e
 {
-    TIME_MACHINE_OFF = 0,   //!< time machine off
-    TIME_MACHINE_ON  = 1    //!< time machine on/enabled
+    TIME_MACHINE_OFF = 0,       //!< time machine off
+    TIME_MACHINE_ON  = 1,       //!< time machine on/enabled
+    TIME_MACHINE_PROGRAMMED = 2 //!< time machine programmed
 } TIME_MACHINE_STATE_t;
 
 //! current state of the time machine (initialized to off)
 static TIME_MACHINE_STATE_t stTimemachine;
+
+//! time when the LEDs changed state last time
+static unsigned long tLastUpdateLed;
+
+//! last state of LEDs
+static unsigned long ledState;
 
 //! MFRC522 modules connected
 static MFRC522 mfrc522[NUM_MFRC522];
@@ -68,14 +81,29 @@ static unsigned long tLastCheckMs;
 //! Initialization
 void setup()
 {
+#ifdef DEBUG
     // for debugging purposes, initialize a serial connection
     Serial.begin(115200);
+#endif
     delay(10);
 
     // ************** TIME MACHINE INITIALIZATION **************
     stTimemachine = TIME_MACHINE_OFF;
 
+    // ************** LED INITIALIZATION **************
+    pinMode(LED_PIN_RED1, OUTPUT);
+    digitalWrite(LED_PIN_RED1, LOW);
+    pinMode(LED_PIN_RED2, OUTPUT);
+    digitalWrite(LED_PIN_RED2, LOW);
+    pinMode(LED_PIN_YELLOW1, OUTPUT);
+    digitalWrite(LED_PIN_YELLOW2, LOW);
+    pinMode(LED_PIN_YELLOW2, OUTPUT);
+    digitalWrite(LED_PIN_YELLOW2, LOW);
+    tLastUpdateLed = millis();
+    ledState = 0;
+
     // ************** MFRC522 INITIALIZATION **************
+
     // initialize the SPI bus first
     SPI.begin();
 
@@ -107,9 +135,23 @@ void setup()
         // set gain to desired value
         mfrc522[k].PCD_SetAntennaGain(MFRC522_GAIN_MASK << 4);
 #endif
+
+        delay(50);
     }
 
+#ifdef DEBUG
     Serial.println("Control panel ready");
+#endif
+}
+
+//! performs actions when time machine is programmed
+static void programTimeMachine(void)
+{
+    stTimemachine = TIME_MACHINE_PROGRAMMED;
+    digitalWrite(LED_PIN_RED1, LOW);
+    digitalWrite(LED_PIN_RED2, LOW);
+    digitalWrite(LED_PIN_YELLOW1, HIGH);
+    digitalWrite(LED_PIN_YELLOW2, HIGH);
 }
 
 //! checks the state of the RFID cards potentially laid on the readers
@@ -164,7 +206,10 @@ static void checkRfidCards(void)
 
     if (cardsOk == MASK(NUM_MFRC522))
     {
+#ifdef DEBUG
         Serial.println("all cards ok");
+#endif
+        programTimeMachine();
     }
 
     unsigned long now = millis();
@@ -196,7 +241,30 @@ void loop()
     }
     else if (stTimemachine==TIME_MACHINE_ON)
     {
+        // red LED blinking
+        unsigned long now = millis();
+        if (now - tLastUpdateLed > T_LED_BLINK_MS)
+        {
+            if (ledState==0)
+            {
+                digitalWrite(LED_PIN_RED1, HIGH);
+                digitalWrite(LED_PIN_RED2, LOW);
+                ledState = 1;
+            }
+            else
+            {
+                digitalWrite(LED_PIN_RED1, LOW);
+                digitalWrite(LED_PIN_RED2, HIGH);
+                ledState = 0;
+            }
+            tLastUpdateLed = now;
+        }
+
         // time machine activated and running => check RFID cards
         checkRfidCards();
+    }
+    else if (stTimemachine==TIME_MACHINE_PROGRAMMED)
+    {
+        // nothing to be done from here on...
     }
 }
