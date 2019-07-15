@@ -33,6 +33,8 @@
 #define T_LED_BLINK_MS    200       //!< LED blink interval
 
 // Arduino Uno pins to coummunicate with the MFRC522s
+#define T_MFRC_RESET_MS  5000       //!< interval for resetting (re-initializing MFRC522 modules)
+
 #define MFRC522_RST_PIN     9       //!< pin connected to the RST on each MFRC522 module
 #define MFRC522_1_SS_PIN   10       //!< pin connected to the first MFRC522's SPI SS pin (NSS, slave select)
 #define MFRC522_2_SS_PIN    8       //!< pin connected to the second MFRC522's SPI SS pin (NSS, slave select)
@@ -78,31 +80,14 @@ static unsigned char cardsOk;
 //! time of the last status update of the cards [ms]
 static unsigned long tLastCheckMs;
 
-//! Initialization
-void setup()
-{
-#ifdef DEBUG
-    // for debugging purposes, initialize a serial connection
-    Serial.begin(115200);
+#ifdef T_MFRC_RESET_MS
+//! time when the MFRC522 were initialized last [ms]
+static unsigned long tMfrcInitMs;
 #endif
-    delay(10);
 
-    // ************** TIME MACHINE INITIALIZATION **************
-    stTimemachine = TIME_MACHINE_OFF;
-
-    // ************** LED INITIALIZATION **************
-    pinMode(LED_PIN_RED1, OUTPUT);
-    digitalWrite(LED_PIN_RED1, LOW);
-    pinMode(LED_PIN_RED2, OUTPUT);
-    digitalWrite(LED_PIN_RED2, LOW);
-    pinMode(LED_PIN_YELLOW1, OUTPUT);
-    digitalWrite(LED_PIN_YELLOW2, LOW);
-    pinMode(LED_PIN_YELLOW2, OUTPUT);
-    digitalWrite(LED_PIN_YELLOW2, LOW);
-    tLastUpdateLed = millis();
-    ledState = 0;
-
-    // ************** MFRC522 INITIALIZATION **************
+void initMfrcs(void)
+{
+    tMfrcInitMs = millis();
 
     // initialize the SPI bus first
     SPI.begin();
@@ -138,6 +123,34 @@ void setup()
 
         delay(50);
     }
+}
+
+//! Initialization
+void setup()
+{
+#ifdef DEBUG
+    // for debugging purposes, initialize a serial connection
+    Serial.begin(115200);
+#endif
+    delay(10);
+
+    // ************** TIME MACHINE INITIALIZATION **************
+    stTimemachine = TIME_MACHINE_ON;
+
+    // ************** LED INITIALIZATION **************
+    pinMode(LED_PIN_RED1, OUTPUT);
+    digitalWrite(LED_PIN_RED1, LOW);
+    pinMode(LED_PIN_RED2, OUTPUT);
+    digitalWrite(LED_PIN_RED2, LOW);
+    pinMode(LED_PIN_YELLOW1, OUTPUT);
+    digitalWrite(LED_PIN_YELLOW2, LOW);
+    pinMode(LED_PIN_YELLOW2, OUTPUT);
+    digitalWrite(LED_PIN_YELLOW2, LOW);
+    tLastUpdateLed = millis();
+    ledState = 0;
+
+    // ************** MFRC522 INITIALIZATION **************
+    initMfrcs();
 
 #ifdef DEBUG
     Serial.println("Control panel ready");
@@ -259,6 +272,13 @@ void loop()
             }
             tLastUpdateLed = now;
         }
+
+#ifdef T_MFRC_RESET_MS
+        if (now - tMfrcInitMs > T_MFRC_RESET_MS)
+        {
+            initMfrcs();
+        }
+#endif
 
         // time machine activated and running => check RFID cards
         checkRfidCards();
