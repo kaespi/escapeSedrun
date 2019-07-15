@@ -134,7 +134,9 @@ void ledYellowOff(void)
 //! initializes the MFRC522 connected
 void initMfrcs(void)
 {
+#ifdef T_MFRC_RESET_MS
     tMfrcInitMs = millis();
+#endif
 
     tLastCheckMs = millis();
     cardsOk = 0;
