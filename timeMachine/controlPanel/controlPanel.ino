@@ -33,7 +33,8 @@
 #define T_LED_BLINK_MS    200       //!< LED blink interval
 
 // Arduino Uno pins to coummunicate with the MFRC522s
-#define T_MFRC_RESET_MS  5000       //!< interval for resetting (re-initializing MFRC522 modules)
+//#define T_MFRC_RESET_MS  5000     //!< interval for resetting (re-initializing MFRC522 modules)
+#define MFRC522_SELF_TEST           //!< enables the self-test at startup to check if the MFRC's are initialized properly
 
 #define MFRC522_RST_PIN     9       //!< pin connected to the RST on each MFRC522 module
 #define MFRC522_1_SS_PIN   10       //!< pin connected to the first MFRC522's SPI SS pin (NSS, slave select)
@@ -85,46 +86,138 @@ static unsigned long tLastCheckMs;
 static unsigned long tMfrcInitMs;
 #endif
 
+//! switches on the red LEDs
+void ledRedOn(void)
+{
+    digitalWrite(LED_PIN_RED1, HIGH);
+    digitalWrite(LED_PIN_RED2, HIGH);
+}
+
+//! switches off the red LEDs
+void ledRedOff(void)
+{
+    digitalWrite(LED_PIN_RED1, LOW);
+    digitalWrite(LED_PIN_RED2, LOW);
+}
+
+//! blinks the red LEDs (inverts basically their state)
+void ledRedBlink(void)
+{
+    if (ledState==0)
+    {
+        digitalWrite(LED_PIN_RED1, HIGH);
+        digitalWrite(LED_PIN_RED2, LOW);
+        ledState = 1;
+    }
+    else
+    {
+        digitalWrite(LED_PIN_RED1, LOW);
+        digitalWrite(LED_PIN_RED2, HIGH);
+        ledState = 0;
+    }
+}
+
+//! switches on the yellow LEDs
+void ledYellowOn(void)
+{
+    digitalWrite(LED_PIN_YELLOW1, HIGH);
+    digitalWrite(LED_PIN_YELLOW2, HIGH);
+}
+
+//! switches off the yellow LEDs
+void ledYellowOff(void)
+{
+    digitalWrite(LED_PIN_YELLOW1, LOW);
+    digitalWrite(LED_PIN_YELLOW2, LOW);
+}
+
+//! initializes the MFRC522 connected
 void initMfrcs(void)
 {
     tMfrcInitMs = millis();
 
-    // initialize the SPI bus. First stop pending transactions,
-    // second initialize the SPI bus.
-    SPI.endTransaction();
-    SPI.end();
-    SPI.begin();
-
     tLastCheckMs = millis();
     cardsOk = 0;
 
-    // initialize each module
-    for (int k=0; k<NUM_MFRC522; k++)
-    {
-        byte ssPin = (k==0 ? MFRC522_1_SS_PIN :
-                      k==1 ? MFRC522_2_SS_PIN :
-                      k==2 ? MFRC522_3_SS_PIN :
-                      k==3 ? MFRC522_4_SS_PIN : -1);
-        if (ssPin < 0)
-        {
-            continue;
-        }
+    bool mfrcsReady = false;
 
-        mfrc522[k].PCD_Init(ssPin, MFRC522_RST_PIN);
+    if (stTimemachine = TIME_MACHINE_OFF)
+    {
+        ledRedOn();
+        ledYellowOn();
+    }
+
+    while (!mfrcsReady)
+    {
+        mfrcsReady = true;
+
+        // initialize the SPI bus. First stop pending transactions,
+        // second initialize the SPI bus.
+        SPI.endTransaction();
+        SPI.end();
+        SPI.begin();
+        delay(50);
+
+        // initialize each module
+        for (int k=0; k<NUM_MFRC522; k++)
+        {
+            byte ssPin = (k==0 ? MFRC522_1_SS_PIN :
+                          k==1 ? MFRC522_2_SS_PIN :
+                          k==2 ? MFRC522_3_SS_PIN :
+                          k==3 ? MFRC522_4_SS_PIN : -1);
+            if (ssPin < 0)
+            {
+                continue;
+            }
+
+            mfrc522[k].PCD_Init(ssPin, MFRC522_RST_PIN);
+            delay(50);
+            if (!mfrc522[k].PCD_PerformSelfTest())
+            {
+                ledRedOff();
+                ledYellowOff();
+                if (k>=0)
+                {
+                    digitalWrite(LED_PIN_YELLOW1, HIGH);
+                }
+                if (k>=1)
+                {
+                    digitalWrite(LED_PIN_YELLOW2, HIGH);
+                }
+                if (k>=2)
+                {
+                    digitalWrite(LED_PIN_RED1, HIGH);
+                }
+                if (k>=3)
+                {
+                    digitalWrite(LED_PIN_RED2, HIGH);
+                }
+                mfrcsReady = false;
+                mfrc522[k].PCD_Reset();
+                delay(500);
+            }
+
 #ifdef DEBUG
-        Serial.print("MFRC522 #");
-        Serial.print(k+1);
-        Serial.print(": ");
-        mfrc522[k].PCD_DumpVersionToSerial();
-        Serial.println("");
+            Serial.print("MFRC522 #");
+            Serial.print(k+1);
+            Serial.print(": ");
+            mfrc522[k].PCD_DumpVersionToSerial();
+            Serial.println("");
 #endif
 
 #if defined(MFRC522_GAIN_MASK) && (MFRC522_GAIN_MASK >= 0x0) && (MFRC522_GAIN_MASK <= 0x7)
-        // set gain to desired value
-        mfrc522[k].PCD_SetAntennaGain(MFRC522_GAIN_MASK << 4);
+            // set gain to desired value
+            mfrc522[k].PCD_SetAntennaGain(MFRC522_GAIN_MASK << 4);
 #endif
 
-        delay(50);
+            delay(50);
+        }
+    }
+
+    if (stTimemachine = TIME_MACHINE_OFF)
+    {
+        ledRedOff();
+        ledYellowOff();
     }
 }
 
@@ -142,13 +235,12 @@ void setup()
 
     // ************** LED INITIALIZATION **************
     pinMode(LED_PIN_RED1, OUTPUT);
-    digitalWrite(LED_PIN_RED1, LOW);
     pinMode(LED_PIN_RED2, OUTPUT);
-    digitalWrite(LED_PIN_RED2, LOW);
     pinMode(LED_PIN_YELLOW1, OUTPUT);
-    digitalWrite(LED_PIN_YELLOW2, LOW);
     pinMode(LED_PIN_YELLOW2, OUTPUT);
-    digitalWrite(LED_PIN_YELLOW2, LOW);
+    ledRedOff();
+    ledYellowOff();
+
     tLastUpdateLed = millis();
     ledState = 0;
 
@@ -164,10 +256,8 @@ void setup()
 static void programTimeMachine(void)
 {
     stTimemachine = TIME_MACHINE_PROGRAMMED;
-    digitalWrite(LED_PIN_RED1, LOW);
-    digitalWrite(LED_PIN_RED2, LOW);
-    digitalWrite(LED_PIN_YELLOW1, HIGH);
-    digitalWrite(LED_PIN_YELLOW2, HIGH);
+    ledRedOff();
+    ledYellowOn();
 }
 
 //! checks the state of the RFID cards potentially laid on the readers
@@ -261,18 +351,7 @@ void loop()
         unsigned long now = millis();
         if (now - tLastUpdateLed > T_LED_BLINK_MS)
         {
-            if (ledState==0)
-            {
-                digitalWrite(LED_PIN_RED1, HIGH);
-                digitalWrite(LED_PIN_RED2, LOW);
-                ledState = 1;
-            }
-            else
-            {
-                digitalWrite(LED_PIN_RED1, LOW);
-                digitalWrite(LED_PIN_RED2, HIGH);
-                ledState = 0;
-            }
+            ledRedBlink();
             tLastUpdateLed = now;
         }
 
