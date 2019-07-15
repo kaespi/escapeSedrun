@@ -89,7 +89,10 @@ void initMfrcs(void)
 {
     tMfrcInitMs = millis();
 
-    // initialize the SPI bus first
+    // initialize the SPI bus. First stop pending transactions,
+    // second initialize the SPI bus.
+    SPI.endTransaction();
+    SPI.end();
     SPI.begin();
 
     tLastCheckMs = millis();
