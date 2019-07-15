@@ -141,15 +141,17 @@ void initMfrcs(void)
 
     bool mfrcsReady = false;
 
-    if (stTimemachine = TIME_MACHINE_OFF)
-    {
-        ledRedOn();
-        ledYellowOn();
-    }
-
     while (!mfrcsReady)
     {
         mfrcsReady = true;
+
+#ifndef T_MFRC_RESET_MS
+        if (stTimemachine = TIME_MACHINE_OFF)
+        {
+            ledRedOn();
+            ledYellowOn();
+        }
+#endif
 
         // initialize the SPI bus. First stop pending transactions,
         // second initialize the SPI bus.
@@ -174,6 +176,7 @@ void initMfrcs(void)
             delay(50);
             if (!mfrc522[k].PCD_PerformSelfTest())
             {
+#ifndef T_MFRC_RESET_MS
                 ledRedOff();
                 ledYellowOff();
                 if (k>=0)
@@ -192,9 +195,12 @@ void initMfrcs(void)
                 {
                     digitalWrite(LED_PIN_RED2, HIGH);
                 }
+#endif // !T_MFRC_RESET_MS
                 mfrcsReady = false;
                 mfrc522[k].PCD_Reset();
+#ifndef T_MFRC_RESET_MS
                 delay(500);
+#endif
             }
 
 #ifdef DEBUG
@@ -212,12 +218,14 @@ void initMfrcs(void)
 
             delay(50);
         }
-    }
 
-    if (stTimemachine = TIME_MACHINE_OFF)
-    {
-        ledRedOff();
-        ledYellowOff();
+#ifndef T_MFRC_RESET_MS
+        if (stTimemachine = TIME_MACHINE_OFF)
+        {
+            ledRedOff();
+            ledYellowOff();
+        }
+#endif
     }
 }
 
