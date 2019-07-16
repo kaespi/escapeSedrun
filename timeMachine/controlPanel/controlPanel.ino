@@ -142,18 +142,11 @@ void initMfrcs(void)
     cardsOk = 0;
 
     bool mfrcsReady = false;
+    bool mfrcInitialized[NUM_MFRC522] = { false, false, false, false };
 
     while (!mfrcsReady)
     {
         mfrcsReady = true;
-
-#ifndef T_MFRC_RESET_MS
-        if (stTimemachine = TIME_MACHINE_OFF)
-        {
-            ledRedOn();
-            ledYellowOn();
-        }
-#endif
 
         // initialize the SPI bus. First stop pending transactions,
         // second initialize the SPI bus.
@@ -174,34 +167,60 @@ void initMfrcs(void)
                 continue;
             }
 
+#ifndef T_MFRC_RESET_MS
+            ledRedOff();
+            ledYellowOff();
+            if (k>=0)
+            {
+                digitalWrite(LED_PIN_YELLOW1, HIGH);
+            }
+            if (k>=1)
+            {
+                digitalWrite(LED_PIN_YELLOW2, HIGH);
+            }
+            if (k>=2)
+            {
+                digitalWrite(LED_PIN_RED1, HIGH);
+            }
+            if (k>=3)
+            {
+                digitalWrite(LED_PIN_RED2, HIGH);
+            }
+#endif // !T_MFRC_RESET_MS
+
+            if (mfrcInitialized[k])
+            {
+                delay(100);
+                continue;
+            }
+
             mfrc522[k].PCD_Init(ssPin, MFRC522_RST_PIN);
             delay(50);
             if (!mfrc522[k].PCD_PerformSelfTest())
             {
-#ifndef T_MFRC_RESET_MS
-                ledRedOff();
-                ledYellowOff();
-                if (k>=0)
-                {
-                    digitalWrite(LED_PIN_YELLOW1, HIGH);
-                }
-                if (k>=1)
-                {
-                    digitalWrite(LED_PIN_YELLOW2, HIGH);
-                }
-                if (k>=2)
-                {
-                    digitalWrite(LED_PIN_RED1, HIGH);
-                }
-                if (k>=3)
-                {
-                    digitalWrite(LED_PIN_RED2, HIGH);
-                }
-#endif // !T_MFRC_RESET_MS
+#ifdef DEBUG
+                Serial.print("MFRC #");
+                Serial.print(k+1);
+                Serial.println(" failed to initialize");
+#endif
+
                 mfrcsReady = false;
-                mfrc522[k].PCD_Reset();
+                mfrc522[k].PCD_SoftPowerDown();
+                delay(200);
+                mfrc522[k].PCD_SoftPowerUp();
 #ifndef T_MFRC_RESET_MS
                 delay(500);
+#endif
+            }
+            else
+            {
+                mfrc522[k].PCD_Init();
+                mfrcInitialized[k] = true;
+
+#ifdef DEBUG
+                Serial.print("MFRC #");
+                Serial.print(k+1);
+                Serial.println(" initialized");
 #endif
             }
 
@@ -220,15 +239,22 @@ void initMfrcs(void)
 
             delay(50);
         }
+    }
 
 #ifndef T_MFRC_RESET_MS
-        if (stTimemachine = TIME_MACHINE_OFF)
+    if (stTimemachine == TIME_MACHINE_OFF || stTimemachine == TIME_MACHINE_ON)
+    {
+        for (int n=0; n<5; n++)
         {
+            delay(50);
+            ledRedOn();
+            ledYellowOn();
+            delay(50);
             ledRedOff();
             ledYellowOff();
         }
-#endif
     }
+#endif // !T_MFRC_RESET_MS
 }
 
 //! Initialization
@@ -241,7 +267,7 @@ void setup()
     delay(10);
 
     // ************** TIME MACHINE INITIALIZATION **************
-    stTimemachine = TIME_MACHINE_ON;
+    stTimemachine = TIME_MACHINE_OFF;
 
     // ************** LED INITIALIZATION **************
     pinMode(LED_PIN_RED1, OUTPUT);
