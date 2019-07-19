@@ -32,6 +32,11 @@
 #define LED_PIN_YELLOW2     5       //!< pin connected to two yellow LEDs
 #define T_LED_BLINK_MS    200       //!< LED blink interval
 
+#define MAKE_ALARM_SOUND            //!< enables the alarm sound when the time machine is programmed
+#ifdef MAKE_ALARM_SOUND
+#  define ALARM_SOUND_PIN  A5       //!< pin for the alarm buzzer
+#endif
+
 // Arduino Uno pins to coummunicate with the MFRC522s
 //#define T_MFRC_RESET_MS  5000     //!< interval for resetting (re-initializing MFRC522 modules)
 #define MFRC522_SELF_TEST           //!< enables the self-test at startup to check if the MFRC's are initialized properly
@@ -283,6 +288,12 @@ void setup()
     // ************** MFRC522 INITIALIZATION **************
     initMfrcs();
 
+#ifdef MAKE_ALARM_SOUND
+    // ************** ALARM BUZZER PIN INITIALIZATION **************
+    pinMode(ALARM_SOUND_PIN, OUTPUT);
+    digitalWrite(ALARM_SOUND_PIN, LOW);
+#endif
+
 #ifdef DEBUG
     Serial.println("Control panel ready");
 #endif
@@ -403,6 +414,21 @@ void loop()
     }
     else if (stTimemachine==TIME_MACHINE_PROGRAMMED)
     {
+#ifdef MAKE_ALARM_SOUND
+        // produce a sirene sound (police car or the like)
+        int freqHz;
+        for (freqHz=440; freqHz < 800; freqHz++)
+        {
+            tone(ALARM_SOUND_PIN, freqHz, 50);
+            delay(5);
+        }
+        for (; freqHz > 440; freqHz--)
+        {
+            tone(ALARM_SOUND_PIN, freqHz, 50);
+            delay(5);
+        }
+#else // MAKE_ALARM_SOUND
         // nothing to be done from here on...
+#endif // MAKE_ALARM_SOUND
     }
 }
