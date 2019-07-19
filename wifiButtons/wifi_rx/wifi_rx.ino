@@ -32,6 +32,11 @@
 #define BROWSER_COMMAND     //!< enables the command through browser (at 192.168.0.1/activate)
 //#define IGNORE_BTN_RELEASE  //!< ignores the button release part while detecting the sequence
 
+#define BLUE_LED_TX_STATUS  //!< enables the usage of the blue onboard LED to debug the status of connected transmitters
+#ifdef BLUE_LED_TX_STATUS
+#  define BLUE_LED_PIN 1    //!< pin number of the blue onboard LED
+#endif
+
 #define OUTPUT_PIN 2        //!< GPIO number to signal a correctly detected button sequence
 #define PACKET_BUF_SIZE 255 //!< size of the packet buffer (for reading the UDP packets)
 #define NUM_BUTTONS 4       //!< number of buttons expected
@@ -145,6 +150,11 @@ void setup()
     // ************** PIN INITIALIZATION **************
     pinMode(OUTPUT_PIN, OUTPUT);
     digitalWrite(OUTPUT_PIN, LOW);
+
+#ifdef BLUE_LED_TX_STATUS
+    pinMode(BLUE_LED_PIN, OUTPUT);
+    digitalWrite(BLUE_LED_PIN, LOW);
+#endif
 
     // ************** BUTTON STATE INITIALIZATION **************
     for (int k=0; k<NUM_BUTTONS; k++)
@@ -285,6 +295,24 @@ static void detectSequence(const int btnIndex, int btnState)
     }
 }
 
+#ifdef BLUE_LED_TX_STATUS
+//! blinks the blue onboard LED a desired number of times
+static void blinkBlueLed(int nBlink)
+{
+    while (nBlink--)
+    {
+        digitalWrite(BLUE_LED_PIN, HIGH);
+        delay(400);
+        digitalWrite(BLUE_LED_PIN, LOW);
+
+        if (nBlink > 0)
+        {
+            delay(400);
+        }
+    }
+}
+#endif // BLUE_LED_TX_STATUS
+
 //! Read UDP packets in the pipeline
 static void readUdpPackets()
 {
@@ -302,6 +330,10 @@ static void readUdpPackets()
         if (btnIndex >= 0 && btnIndex < NUM_BUTTONS)
         {
             btnReady[btnIndex] = 1;
+
+#ifdef BLUE_LED_TX_STATUS
+            blinkBlueLed(btnIndex+1);
+#endif
         }
     }
     else if (nBytes >= 5 && buf[0]=='B' && buf[1]=='T' && buf[2]=='N')
