@@ -44,6 +44,9 @@
         Dim pwdW = lblPwd.Width
         lblPwd.Location = New Point(txtPwd.Location.X - pwdW - 30, txtPwd.Location.Y)
 
+        Dim lblHixonW = lblHixon.Width
+        lblHixon.Location = New Point((formW - lblHixonW - 30 - pwdW) / 2, txtPwd.Location.Y - 130)
+
         Dim hintH = lblHint.Height
         lblHint.Location = New Point(lblPwd.Location.X, lblPwd.Location.Y + hintH + 30)
 

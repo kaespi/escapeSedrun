@@ -28,6 +28,7 @@ Partial Class Form1
         Me.lblHint = New System.Windows.Forms.Label()
         Me.txtPwd = New System.Windows.Forms.TextBox()
         Me.videoPlayer = New AxWMPLib.AxWindowsMediaPlayer()
+        Me.lblHixon = New System.Windows.Forms.Label()
         CType(Me.videoPlayer, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
@@ -85,12 +86,24 @@ Partial Class Form1
         Me.videoPlayer.TabIndex = 101
         Me.videoPlayer.Visible = False
         '
+        'lblHixon
+        '
+        Me.lblHixon.AutoSize = True
+        Me.lblHixon.Font = New System.Drawing.Font("Microsoft Sans Serif", 36.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblHixon.ForeColor = System.Drawing.Color.White
+        Me.lblHixon.Location = New System.Drawing.Point(253, 87)
+        Me.lblHixon.Name = "lblHixon"
+        Me.lblHixon.Size = New System.Drawing.Size(482, 55)
+        Me.lblHixon.TabIndex = 102
+        Me.lblHixon.Text = "Dr. Hixon's Computer"
+        '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.Black
         Me.ClientSize = New System.Drawing.Size(779, 457)
+        Me.Controls.Add(Me.lblHixon)
         Me.Controls.Add(Me.videoPlayer)
         Me.Controls.Add(Me.txtPwd)
         Me.Controls.Add(Me.lblHint)
@@ -109,5 +122,6 @@ Partial Class Form1
     Friend WithEvents lblHint As System.Windows.Forms.Label
     Friend WithEvents txtPwd As System.Windows.Forms.TextBox
     Friend WithEvents videoPlayer As AxWMPLib.AxWindowsMediaPlayer
+    Friend WithEvents lblHixon As System.Windows.Forms.Label
 
 End Class
