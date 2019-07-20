@@ -60,9 +60,9 @@ Partial Class Form1
         Me.lblHint.ForeColor = System.Drawing.Color.White
         Me.lblHint.Location = New System.Drawing.Point(126, 221)
         Me.lblHint.Name = "lblHint"
-        Me.lblHint.Size = New System.Drawing.Size(344, 26)
+        Me.lblHint.Size = New System.Drawing.Size(466, 26)
         Me.lblHint.TabIndex = 2
-        Me.lblHint.Text = "(Hinweis: Nachname von Melanie)"
+        Me.lblHint.Text = "(Hinweis zum Passwort: Geheimnisse der Zeit)"
         '
         'txtPwd
         '

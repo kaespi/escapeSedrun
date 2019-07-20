@@ -8,7 +8,7 @@
     Delegate Function LowLevelKeyboardProcDelegate(ByVal nCode As Integer, ByVal wParam As Integer, ByRef lParam As KBDLLHOOKSTRUCT) As Integer
 
     Const WH_KEYBOARD_LL As Integer = 13
-    Const password As String = "Jost"
+    Const password As String = "nukleoid"
 
     Structure KBDLLHOOKSTRUCT
         Dim vkCode As Integer
@@ -92,13 +92,13 @@
 
     Private Sub CheckPassword()
         ' Check the password
-        If txtPwd.Text = password Then
+        If String.Compare(txtPwd.Text, password, True) = 0 Then
             txtPwd.ForeColor = Color.Green
             Application.DoEvents()
             System.Threading.Thread.Sleep(500)
 
             videoPlayer.Visible = True
-            videoPlayer.URL = ".\\MVI_0043.AVI"
+            videoPlayer.URL = ".\\cevi.avi"
 
             Dim formW = Me.Size.Width
             Dim formH = Me.Size.Height
