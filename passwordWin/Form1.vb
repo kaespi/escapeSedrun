@@ -10,6 +10,8 @@
     Const WH_KEYBOARD_LL As Integer = 13
     Const password As String = "nukleoid"
 
+    Dim videoEnded As Boolean
+
     Structure KBDLLHOOKSTRUCT
         Dim vkCode As Integer
         Dim scanCode As Integer
@@ -109,6 +111,7 @@
             videoPlayer.Width = formW
             videoPlayer.Height = formH
             videoPlayer.fullScreen = True
+            videoEnded = False
         End If
     End Sub
 
@@ -144,8 +147,11 @@
 
     Private Sub checkPlayState(ByVal sender As System.Object, ByVal e As AxWMPLib._WMPOCXEvents_PlayStateChangeEvent) Handles videoPlayer.PlayStateChange
         If e.newState = 8 Then
-            closeButtonPressed = True
-            Close()
+            videoEnded = True
+        ElseIf e.newState = 1 And videoEnded Then
+            ' loop endlessly
+            videoPlayer.Ctlcontrols.play()
+            videoEnded = False
         End If
     End Sub
 End Class

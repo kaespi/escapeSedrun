@@ -103,8 +103,8 @@ Partial Class Form1
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.Black
         Me.ClientSize = New System.Drawing.Size(779, 457)
-        Me.Controls.Add(Me.lblHixon)
         Me.Controls.Add(Me.videoPlayer)
+        Me.Controls.Add(Me.lblHixon)
         Me.Controls.Add(Me.txtPwd)
         Me.Controls.Add(Me.lblHint)
         Me.Controls.Add(Me.lblPwd)
